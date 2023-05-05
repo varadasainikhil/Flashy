@@ -11,30 +11,49 @@ BACKGROUND_COLOR = "#B1DDC6"
 
 data = pd.read_csv("data/french_words.csv")
 data_dictionary = data.to_dict(orient="records")
+current_card = {}
 
 
 # ---------------------------- RANDOMISING THE WORDS ------------------------------- #
 def randomize_words():
+    global current_card
+    global flip_timer
+    window.after_cancel(flip_timer)
     current_card = random.choice(data_dictionary)
+    canvas.itemconfig(front_image, image=french_image)
+    canvas.itemconfig(card_language, text="French")
+    canvas.itemconfig(card_word, fill="#000000")
+    canvas.itemconfig(card_language, fill="#000000")
     current_french_word = current_card["French"]
-    current_english_word = current_card["English"]
     canvas.itemconfig(card_word, text=current_french_word)
-    print(current_french_word)
-    print(current_english_word)
+    flip_timer = window.after(3000, func=flip_cards)
+
+
+# ---------------------------- FLIPPING THE CARDS TO ENGLISH ------------------------------- #
+def flip_cards():
+    global current_card
+    current_english_word = current_card["English"]
+    canvas.itemconfig(card_language, fill="#FFFFFF")
+    canvas.itemconfig(card_word, fill="#FFFFFF")
+    canvas.itemconfig(card_word, text=current_english_word)
+    canvas.itemconfig(front_image, image=english_image)
+    canvas.itemconfig(card_language, text="English")
 
 
 window = Tk()
 window.config(padx=50, pady=50, bg=BACKGROUND_COLOR)
 window.minsize(width=900, height=626)
 window.title("Flashy")
-
+flip_timer = window.after(3000, func=flip_cards)
 canvas = Canvas(width=800, height=526, bg=BACKGROUND_COLOR, highlightthickness=0, borderwidth=0)
 french_image = PhotoImage(file="images/card_front.png")
+english_image = PhotoImage(file="images/card_back.png")
 front_image = canvas.create_image(400, 263, image=french_image)
 
-# French Text
+# Language Text
 card_language = canvas.create_text(400, 150, text="French", font=(FONT, LANGUAGE_FONT_SIZE, LANGUAGE_FONT_STYLE))
 
+# Word Text
 card_word = canvas.create_text(400, 263, text=data["French"][0], font=(FONT, WORD_FONT_SIZE, WORD_FONT_STYLE))
 
 canvas.grid(row=0, column=0, columnspan=2)
@@ -47,4 +66,5 @@ cross_image = PhotoImage(file="images/wrong.png")
 wrong_button = Button(image=cross_image, highlightthickness=0, borderwidth=0, command=randomize_words)
 wrong_button.grid(row=1, column=0)
 
+randomize_words()
 window.mainloop()
