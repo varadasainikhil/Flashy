@@ -25,18 +25,14 @@ finally:
 def user_remembers():
     global current_card
     data_dictionary.remove(current_card)
-    window.after(10, randomize_words)
+    words_to_learn_dataframe = pd.DataFrame(data_dictionary)
+    words_to_learn_dataframe.to_csv("data/words_to_learn.csv")
+    randomize_words()
 
 
 # ---------------------------- SAVING THE WORDS THAT THE USER FORGOT TO A NEW CSV ------------------------------- #
 def user_forgot():
-    global current_card, data_dictionary
-    words_to_learn.remove(current_card)
-    words_to_learn_dataframe = pd.DataFrame(words_to_learn)
-    filepath = Path('data/words_to_learn.csv')
-    filepath.parent.mkdir(parents=True, exist_ok=True)
-    words_to_learn_dataframe.to_csv(filepath, index=False)
-    window.after(10, randomize_words)
+    randomize_words()
 
 
 # ---------------------------- RANDOMISING THE WORDS ------------------------------- #
