@@ -1,6 +1,7 @@
 import random
 from tkinter import *
 import pandas as pd
+from pathlib import Path
 
 FONT = "Ariel"
 LANGUAGE_FONT_SIZE = 40
@@ -9,9 +10,33 @@ WORD_FONT_SIZE = 60
 WORD_FONT_STYLE = "bold"
 BACKGROUND_COLOR = "#B1DDC6"
 
-data = pd.read_csv("data/french_words.csv")
-data_dictionary = data.to_dict(orient="records")
-current_card = {}
+try:
+    with open("data/words_to_learn.csv", "r") as file:
+        data = pd.read_csv(file)
+        data_dictionary = data.to_dict(orient="records")
+except FileNotFoundError:
+    data = pd.read_csv("data/french_words.csv")
+    data_dictionary = data.to_dict(orient="records")
+finally:
+    current_card = {}
+
+
+# ---------------------------- DELETING THE WORDS THAT THE USER REMEMBERS ------------------------------- #
+def user_remembers():
+    global current_card
+    data_dictionary.remove(current_card)
+    window.after(10, randomize_words)
+
+
+# ---------------------------- SAVING THE WORDS THAT THE USER FORGOT TO A NEW CSV ------------------------------- #
+def user_forgot():
+    global current_card, data_dictionary
+    words_to_learn.remove(current_card)
+    words_to_learn_dataframe = pd.DataFrame(words_to_learn)
+    filepath = Path('data/words_to_learn.csv')
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    words_to_learn_dataframe.to_csv(filepath, index=False)
+    window.after(10, randomize_words)
 
 
 # ---------------------------- RANDOMISING THE WORDS ------------------------------- #
@@ -59,12 +84,13 @@ card_word = canvas.create_text(400, 263, text=data["French"][0], font=(FONT, WOR
 canvas.grid(row=0, column=0, columnspan=2)
 
 tick_image = PhotoImage(file="images/right.png")
-correct_button = Button(image=tick_image, highlightthickness=0, borderwidth=0, command=randomize_words)
+correct_button = Button(image=tick_image, highlightthickness=0, borderwidth=0, command=user_remembers)
 correct_button.grid(row=1, column=1)
 
 cross_image = PhotoImage(file="images/wrong.png")
-wrong_button = Button(image=cross_image, highlightthickness=0, borderwidth=0, command=randomize_words)
+wrong_button = Button(image=cross_image, highlightthickness=0, borderwidth=0, command=user_forgot)
 wrong_button.grid(row=1, column=0)
 
 randomize_words()
+words_to_learn = data_dictionary.copy()
 window.mainloop()
